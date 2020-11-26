@@ -1,0 +1,14 @@
+{
+  "name": "ngx-psalm-notation",
+  "version": "0.1.0-beta",
+  "peerDependencies": {
+    "@angular/common": "^10.1.6",
+    "@angular/core": "^10.1.6"
+  },
+  "dependencies": {
+    "fabric": "^4.2.0",
+    "hyphenation.fi": "^0.2.1",
+    "hypher": "^0.2.5",
+    "tslib": "^2.0.0"
+  }
+}

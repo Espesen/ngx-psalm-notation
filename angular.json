@@ -1,0 +1,47 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "ngx-psalm-notation": {
+      "projectType": "library",
+      "root": "projects/ngx-psalm-notation",
+      "sourceRoot": "projects/ngx-psalm-notation/src",
+      "prefix": "lib",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "options": {
+            "tsConfig": "projects/ngx-psalm-notation/tsconfig.lib.json",
+            "project": "projects/ngx-psalm-notation/ng-package.json"
+          },
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/ngx-psalm-notation/tsconfig.lib.prod.json"
+            }
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ngx-psalm-notation/src/test.ts",
+            "tsConfig": "projects/ngx-psalm-notation/tsconfig.spec.json",
+            "karmaConfig": "projects/ngx-psalm-notation/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/ngx-psalm-notation/tsconfig.lib.json",
+              "projects/ngx-psalm-notation/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
+    }},
+  "defaultProject": "ngx-psalm-notation"
+}
