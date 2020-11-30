@@ -5,7 +5,8 @@ export const notationDefaultValues = {
     xPos: 5,
     yPos: 5,
     width: 500,
-    firstNotePosition: 70
+    firstNotePosition: 70,
+    minimumAutomaticScale: 0.9
   },
   system: {
       numberOfStaffs: 1,

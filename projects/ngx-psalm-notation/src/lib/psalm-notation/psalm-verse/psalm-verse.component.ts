@@ -54,7 +54,6 @@ export class PsalmVerseComponent implements AfterViewInit, OnDestroy {
     combineLatest([ this.dataInput$, canvasWidth$ ]).pipe(takeUntil(this.onDestroy$))
       .subscribe(([ dataInput, canvasWidth ]: [ psalmVerseComponentInput, number]) => {
         const finalCanvasWidth = canvasWidth || dataInput.initialCanvasWidth || 500;
-        console.log(canvasWidth, finalCanvasWidth);
         this.renderNotes({
           lyrics: dataInput.lyrics,
           melody: dataInput.melody,
