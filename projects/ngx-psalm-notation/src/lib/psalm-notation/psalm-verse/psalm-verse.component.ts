@@ -3,7 +3,7 @@ import { combineLatest, Observable, Subject, of } from 'rxjs';
 import { NotationCanvas } from './../notation-service/canvas/notation-canvas';
 import { AfterViewInit, Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
 
-import { takeUntil } from 'rxjs/operators';
+import { startWith, takeUntil } from 'rxjs/operators';
 
 export type psalmVerseComponentInput = {
   lyrics: string;
@@ -48,12 +48,13 @@ export class PsalmVerseComponent implements AfterViewInit, OnDestroy {
 
     const canvasEl = document.getElementById(this.canvasId) as HTMLCanvasElement;
     this.notationCanvas = new NotationCanvas(canvasEl);
+    const canvasWidth$ = this.responsiveCanvasWidth$ ?
+      this.responsiveCanvasWidth$.pipe(startWith(0)) : of(0);
 
-    combineLatest([ this.dataInput$, this.responsiveCanvasWidth$ || of(0) ]).pipe(
-        takeUntil(this.onDestroy$)
-      )
+    combineLatest([ this.dataInput$, canvasWidth$ ]).pipe(takeUntil(this.onDestroy$))
       .subscribe(([ dataInput, canvasWidth ]: [ psalmVerseComponentInput, number]) => {
         const finalCanvasWidth = canvasWidth || dataInput.initialCanvasWidth || 500;
+        console.log(canvasWidth, finalCanvasWidth);
         this.renderNotes({
           lyrics: dataInput.lyrics,
           melody: dataInput.melody,
