@@ -17,6 +17,8 @@ export class HyphenationService {
     return hypher.hyphenate(text)
       .reduce((acc, curr) => acc.concat(...curr.replace(/\s([\S=])/g, '*$1').split('*')
         .map((item, index, array) => index === 0 && array.length > 1 ? item + ' ' : item)), [])
+      // remove em dashes
+      .filter(item => item !== '–')
       .map((item, index, array) => item
         .match(/[^\s]$/) && index < array.length - 1 ? item + '-' : item.replace(/\s$/, ''))
       .map(item => item.replace('=-', '='));

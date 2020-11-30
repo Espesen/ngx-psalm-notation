@@ -1,3 +1,4 @@
+import { HyphenationService } from './../psalm-text/hyphenation.service';
 import { MelodyError } from './../melody-service/psalm-melody-interface';
 import { notationDefaultValues } from './default-values';
 import { LyricsObject } from './symbol/attached-object';
@@ -31,7 +32,8 @@ type RenderedPsalmLine = RenderedPsalm['firstLine'];
 export class NotationService {
 
   constructor(
-    private psalmTextService: PsalmTextService
+    private psalmTextService: PsalmTextService,
+    private hyphenationService: HyphenationService
   ) { }
 
   private calculateRequiredWidth(staff: Staff): number {
@@ -53,14 +55,38 @@ export class NotationService {
       const tenorIndex = psalmLine.elements.findIndex(elem => elem.note.duration === 'brevis');
       const tenorText = psalmLine.elements[tenorIndex].text;
       const tenorPitch = psalmLine.elements[tenorIndex].note.pitch;
-      const naturalSplitRegex = /(^.{10,}[\.\,\?\!])/;
+      const naturalSplitRegex = /(^.{15,}?[\.\,\?\!])/;
       const capableOfNaturalSplit = !!tenorText.match(naturalSplitRegex);
-      const splitOnSpaceIndex = tenorText
+      const spaceIndexes = tenorText
         .split('')
-        .findIndex((char, index) => index > 0.7 * tenorText.length && char === ' ');
+        .map((char, index) => ({ char, index }))
+        .filter(item => item.char === ' ')
+        .map(item => item.index)
+        .reduce((acc, spaceIndex) => ({
+          lastFoundIndex: spaceIndex,
+          bestFoundIndex: acc.bestFoundIndex > -1 ?
+            acc.bestFoundIndex :
+            spaceIndex > 0.65 * tenorText.length ? spaceIndex : -1
+        }) , { lastFoundIndex: -1, bestFoundIndex: -1 });
+      const splitOnSpaceIndex = spaceIndexes.bestFoundIndex > -1 ?
+        spaceIndexes.bestFoundIndex : spaceIndexes.lastFoundIndex;
+      const splitByHyphenation = (word: string): [ string, string ] => {
+        const syllables = this.hyphenationService.hyphenate(word);
+        const splitPoint = Math.round(syllables.length * 0.65);
+        const stripHyphens = (arrayOfSyllables: string[]): string => arrayOfSyllables
+          .map((s, i, arr) => i < arr.length - 1 ? s.replace(/\-$/, '') : s)
+          .join('');
+        return [
+          stripHyphens(syllables.slice(0, splitPoint)),
+          stripHyphens(syllables.slice(splitPoint))
+        ];
+      };
+
       const tenorFragments: [ string, string ] = capableOfNaturalSplit ?
-        tenorText.split(naturalSplitRegex, 3).slice(-2) as [ string, string ] :
-        [ tenorText.slice(0, splitOnSpaceIndex), tenorText.slice(splitOnSpaceIndex + 1) ];
+        tenorText.split(naturalSplitRegex, 3).slice(-2).map(txt => txt.trim()) as [ string, string ] :
+        splitOnSpaceIndex > 0 ?
+          [ tenorText.slice(0, splitOnSpaceIndex), tenorText.slice(splitOnSpaceIndex + 1) ] :
+          splitByHyphenation(tenorText);
 
       return [
         psalmLine.elements.slice(0, tenorIndex)
