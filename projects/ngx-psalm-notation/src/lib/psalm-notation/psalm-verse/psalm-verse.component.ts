@@ -19,6 +19,7 @@ export type psalmVerseComponentInput = {
 })
 export class PsalmVerseComponent implements AfterViewInit, OnDestroy {
 
+  // TODO!! Handle situation when lyrics is null
   @Input() dataInput$: Observable<psalmVerseComponentInput>;
   @Input() canvasId: string;
   @Input() responsiveCanvasWidth$: Observable<number>;

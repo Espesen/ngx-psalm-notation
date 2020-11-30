@@ -30,5 +30,15 @@ describe('HyphenationService', () => {
         ).toBe(testCase.hyphenatedTextAsAString, 'hyphenating string ' + testCase.originalText);
       });
     });
+
+    it('should handle = sign correctly (verse delimiter)', () => {
+      testCases
+        .filter(testCase => !!testCase.originalText.match(/=/))
+        .forEach(testCase => {
+          const result = service.hyphenate(testCase.originalText);
+          expect(result.findIndex(hyphen => hyphen === '=')).toBeGreaterThan(-1,
+            'should find an isolated = sign on string ' + testCase.originalText);
+        });
+    });
   });
 });
