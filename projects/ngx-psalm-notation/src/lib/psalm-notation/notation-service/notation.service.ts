@@ -6,6 +6,7 @@ import { Staff, StaffNote, HalfBarline } from './staff/staff';
 import { Injectable } from '@angular/core';
 import { drawing } from './canvas/drawing';
 import { RenderedPsalm } from '../psalm-text/rendered-psalm-interface';
+import { Note } from './symbol/symbol';
 
 type renderPsalmVerseOptions = {
   melody: string;
@@ -21,6 +22,8 @@ type renderPsalmVerseReturnValue = {
     textErrors: string[];
   }
 };
+
+type RenderedPsalmLine = RenderedPsalm['firstLine'];
 
 @Injectable({
   providedIn: 'root'
@@ -38,51 +41,131 @@ export class NotationService {
   renderPsalmStaffs(options: renderPsalmVerseOptions): renderPsalmVerseReturnValue {
 
     const staffLineSpacing = notationDefaultValues.staffLineSpacing;
+    const staffXPosition = 10;
     const upperStaffYPosition = 25;
     const { melody, lyrics, canvasWidth } = options;
     const psalmVerse: RenderedPsalm = this.psalmTextService.renderPsalm({ melody, lyrics });
     const selectedStaffs: Staff[] = [];
+    const minimumStaffScale = notationDefaultValues.staff.minimumAutomaticScale;
+    const indentation = 20;
 
-    // Create three staffs and decide later which ones to use
-    const onlyStaff = new Staff().setPosition(10, upperStaffYPosition)
+    const splitPsalmLine = (psalmLine: RenderedPsalmLine): RenderedPsalmLine['elements'][] => {
+      const tenorIndex = psalmLine.elements.findIndex(elem => elem.note.duration === 'brevis');
+      const tenorText = psalmLine.elements[tenorIndex].text;
+      const tenorPitch = psalmLine.elements[tenorIndex].note.pitch;
+      const naturalSplitRegex = /(^.{10,}[\.\,\?\!])/;
+      const capableOfNaturalSplit = !!tenorText.match(naturalSplitRegex);
+      const splitOnSpaceIndex = tenorText
+        .split('')
+        .findIndex((char, index) => index > 0.7 * tenorText.length && char === ' ');
+      const tenorFragments: [ string, string ] = capableOfNaturalSplit ?
+        tenorText.split(naturalSplitRegex, 3).slice(-2) as [ string, string ] :
+        [ tenorText.slice(0, splitOnSpaceIndex), tenorText.slice(splitOnSpaceIndex + 1) ];
+
+      return [
+        psalmLine.elements.slice(0, tenorIndex)
+          .concat({
+            note: new Note({ pitch: tenorPitch, duration: 'brevis' }),
+            text: tenorFragments[0]
+          }),
+        [{
+          note: new Note({ pitch: tenorPitch, duration: 'brevis' }),
+          text: tenorFragments[1]
+        }].concat(psalmLine.elements.slice(tenorIndex + 1))
+      ];
+    };
+
+    /** Return either one or two staffs for a line of lyrics. Depends on how much words there are */
+    const createStaffsForLyricsLine = (psalmLine: RenderedPsalmLine, allIndented: boolean): Staff[] => {
+
+      type createFn = (psalmLineElements: RenderedPsalmLine['elements'], indented: boolean) => Staff;
+      const createAndPopulateStaff: createFn = (psalmLineElements, indented) => {
+        const staff = new Staff().setDimensions(indented ? canvasWidth - 20 - indentation : canvasWidth - 20, 1);
+        psalmLineElements.forEach(elem =>
+          staff.addObject(new StaffNote(elem.note).attachObject(new LyricsObject(elem.text))));
+        const requiredWidth = this.calculateRequiredWidth(staff);
+        staff.scale = requiredWidth < staff.width - 15 ? 1 : staff.width / requiredWidth * 0.97;
+        return staff;
+      };
+
+      const oneStaff = createAndPopulateStaff(psalmLine.elements, allIndented);
+
+      return oneStaff.scale < minimumStaffScale ?
+        splitPsalmLine(psalmLine).map((partial, index) => createAndPopulateStaff(
+          partial,
+          allIndented || index === 1)) :
+        [ oneStaff ];
+    };
+
+    // Create one staff and if text doesn't fit, create several instead.
+    const onlyStaff = new Staff().setPosition(staffXPosition, upperStaffYPosition)
       .setDimensions(canvasWidth - 20, 1);
-    const upperStaff = new Staff().setPosition(10, upperStaffYPosition)
-      .setDimensions(canvasWidth - 20, 1);
-    const lowerStaff = new Staff().setDimensions(canvasWidth - 40, 1);
 
     if (psalmVerse.isValid) {
       psalmVerse.firstLine.elements.forEach(elem => {
         onlyStaff.addObject(new StaffNote(elem.note).attachObject(new LyricsObject(elem.text)));
-        upperStaff.addObject(new StaffNote(elem.note).attachObject(new LyricsObject(elem.text)));
       });
       onlyStaff.addObject(new HalfBarline());
       psalmVerse.secondLine.elements.forEach(elem => {
         onlyStaff.addObject(new StaffNote(elem.note).attachObject(new LyricsObject(elem.text)));
-        lowerStaff.addObject(new StaffNote(elem.note).attachObject(new LyricsObject(elem.text)));
       });
 
-      if (this.calculateRequiredWidth(onlyStaff) < onlyStaff.width) {
-        onlyStaff.width = this.calculateRequiredWidth(onlyStaff) + 10;
+      const onlyStaffRequiredWith = this.calculateRequiredWidth(onlyStaff);
+
+      // if text fits on one staff...
+      if ( onlyStaffRequiredWith < onlyStaff.width - 15) {
+        onlyStaff.width = onlyStaffRequiredWith + 10;
         selectedStaffs.push(onlyStaff);
+
+      // otherwise, try to scale down the staff...
       } else {
-        const upperStaffRequiredWidth = this.calculateRequiredWidth(upperStaff);
-        const lowerStaffRequiredWidth = this.calculateRequiredWidth(lowerStaff);
-        upperStaff.scale = upperStaffRequiredWidth < upperStaff.width ?
-          1 :
-          0.99 * upperStaff.width / upperStaffRequiredWidth;
-        upperStaff.width = upperStaffRequiredWidth + 10;
-        lowerStaff.scale = lowerStaffRequiredWidth < lowerStaff.width ?
-          1 :
-          0.99 * lowerStaff.width / lowerStaffRequiredWidth;
-        lowerStaff.width = lowerStaffRequiredWidth + 10;
-        selectedStaffs.push(upperStaff);
-        selectedStaffs.push(lowerStaff);
-        lowerStaff.setPosition(30, upperStaffYPosition + 10 * staffLineSpacing * upperStaff.scale);
+        onlyStaff.scale = onlyStaff.width / this.calculateRequiredWidth(onlyStaff) * 0.97;
+
+        // if the staff would be too small, divide text on two or more staffs
+        if (onlyStaff.scale < minimumStaffScale) {
+          selectedStaffs.push(
+            ...createStaffsForLyricsLine(psalmVerse.firstLine, false),
+            ...createStaffsForLyricsLine(psalmVerse.secondLine, true)
+          );
+          selectedStaffs.forEach(staff => {
+            const requiredWidth = this.calculateRequiredWidth(staff);
+            staff.width = requiredWidth + 10;
+          });
+        } else {
+          selectedStaffs.push(onlyStaff);
+        }
       }
     }
 
-    const requiredHeight = selectedStaffs
-      .reduce((acc, curr) => acc + staffLineSpacing * 9 * curr.scale, upperStaffYPosition);
+    // calculate space requirements and position staffs
+
+    interface Accumulator {
+      requiredHeight: number;
+      nextStaffYPosition: number;
+    }
+
+    const calculateStaffRequiredHeight: (staff: Staff) => number = staff =>
+      staffLineSpacing * 10 * staff.scale;
+
+    type reduceFn = (accumulator: Accumulator, staff: Staff, index: number) => Accumulator;
+
+    const reduceFunction: reduceFn = (accumulator, staff, index) => {
+      const xPosition = index === 0 ? staffXPosition : staffXPosition + indentation;
+      staff.setPosition(xPosition, accumulator.nextStaffYPosition);
+      const nextStaffYPosition = accumulator.nextStaffYPosition + calculateStaffRequiredHeight(staff);
+      return {
+        requiredHeight: nextStaffYPosition + 25,
+        nextStaffYPosition
+      };
+    };
+
+    const reduceFirstValue: Accumulator = { requiredHeight: 0, nextStaffYPosition: upperStaffYPosition };
+
+    const { requiredHeight } = selectedStaffs
+      .reduce(reduceFunction, reduceFirstValue);
+
+    // const requiredHeight = selectedStaffs
+    //   .reduce((acc, curr) => acc + staffLineSpacing * 9 * curr.scale, upperStaffYPosition);
 
     return {
       staffs: selectedStaffs,
