@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import * as Hypher from 'hypher';
 import * as finnish from 'hyphenation.fi';
 
-const hypher = new Hypher(finnish);
+const modifiedFinnish = Object.assign({}, finnish, { leftmin: 1, rightmin: 1 });
+
+const hypher = new Hypher(modifiedFinnish);
 
 @Injectable({
   providedIn: 'root'
