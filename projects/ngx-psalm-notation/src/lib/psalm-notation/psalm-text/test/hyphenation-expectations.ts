@@ -24,7 +24,10 @@ export const hyphenationExpectations: testCase[] = [
     originalText: 'Älä ota',
     hyphenatedTextAsAString: 'Ä-lä o-ta'
   },
-
+  {
+    originalText: 'näön',
+    hyphenatedTextAsAString: 'nä-ön'
+  },
   {
     originalText: 'Toimiiko tavutus jos = ääkkösiä',
     hyphenatedTextAsAString: 'Toi-mii-ko ta-vu-tus jos = ääk-kö-siä'

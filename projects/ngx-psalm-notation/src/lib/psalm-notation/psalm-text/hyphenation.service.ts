@@ -18,7 +18,8 @@ export class HyphenationService {
 
     type exception = { syllable: string, replace: string[] };
     const exceptions: exception[] = [
-      { syllable: 'älä', replace: ['ä', 'lä']}
+      { syllable: 'älä', replace: ['ä', 'lä']},
+      { syllable: 'näön', replace: ['nä', 'ön']}
     ];
 
     const getFindFn = (syllable: string) => (exc: exception) => !!syllable.match(new RegExp(exc.syllable, 'i'));
