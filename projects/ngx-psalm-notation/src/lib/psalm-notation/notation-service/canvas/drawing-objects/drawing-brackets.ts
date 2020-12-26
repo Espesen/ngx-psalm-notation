@@ -49,11 +49,11 @@ export const drawBrackets = (options: arguments): returnValue => {
   setPosition('right');
 
   // let { xPos: left, yPos: top } = drawingHelpers.getAccidentalPosition({
-  //   
+  //
   //   pitch,
   //   staff
   //   });
-  
+
   positions.left.left += objects.leftBracket.translateX * staff.scale;
   positions.left.top += objects.leftBracket.translateY * staff.scale;
 

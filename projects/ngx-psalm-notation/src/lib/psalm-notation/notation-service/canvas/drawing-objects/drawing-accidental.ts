@@ -34,8 +34,6 @@ export const drawAccidental = (options: arguments): returnValue => {
   accidentalPath.set({ left, top });
   accidentalPath.scale(accidentalObject.scaleFactor * staff.scale);
 
-  
-
   // after positioning the accidental, the note must be shifted
   const notePositionDelta = accidentalObject.extraSpacing * staff.scale;
   notePath.set({
