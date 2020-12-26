@@ -28,6 +28,7 @@ describe('HyphenationService', () => {
             .reduce((acc, curr) => acc += curr.slice(-1) === '-' ? curr : curr + ' ', '')
             .trim()
         ).toBe(testCase.hyphenatedTextAsAString, 'hyphenating string ' + testCase.originalText);
+        expect(resultingHyphens.length).toBe(testCase.numberOfSyllables, 'wrong number of syllables ' + testCase.originalText);
       });
     });
 

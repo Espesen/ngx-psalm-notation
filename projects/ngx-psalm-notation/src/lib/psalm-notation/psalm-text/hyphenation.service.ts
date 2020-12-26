@@ -33,17 +33,24 @@ export class HyphenationService {
         exc.replace
           .map(addSpaceToLast);
     };
-    const reduceFn = (arr: string[], syllable: string): string[] => exceptions
+    const replaceExceptions = (arr: string[], syllable: string): string[] => exceptions
       .find(getFindFn(syllable)) ?
         arr.concat(...replaceFn(exceptions.find(getFindFn(syllable)), syllable)) :
         arr.concat(syllable);
 
+    const splitOnSpaces: (s: string) => string[] = str => str
+      .split(/(\s)/)
+      .filter(syll => !!syll)
+      .reduce((a, b) => b === ' ' ? a.slice(0, -1).concat(a.slice(-1)[0] + ' ') : a.concat(b), []);
+
     return hypher.hyphenate(text)
+      // split on spaces
+      .reduce((a, b) => a.concat(...splitOnSpaces(b)), [])
       .reduce((acc, curr) => acc.concat(...curr.replace(/\s([\S=])/g, '*$1').split('*')
         .map((item, index, array) => index === 0 && array.length > 1 ? item + ' ' : item)), [])
       // remove em dashes
-      .filter(item => item !== '–')
-      .reduce(reduceFn, [])
+      .filter(item => item !== '– ')
+      .reduce(replaceExceptions, [])
       .map((item, index, array) => item
         .match(/[^\s]$/) && index < array.length - 1 ? item + '-' : item.replace(/\s$/, ''))
       .map(item => item.replace('=-', '='));
