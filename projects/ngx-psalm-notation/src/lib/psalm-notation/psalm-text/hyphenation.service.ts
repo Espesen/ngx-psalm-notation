@@ -1,3 +1,4 @@
+import { getLastAccentedSyllables } from './terminal-groups';
 import { Injectable } from '@angular/core';
 import * as Hypher from 'hypher';
 import * as finnish from 'hyphenation.fi';
@@ -5,6 +6,17 @@ import * as finnish from 'hyphenation.fi';
 const modifiedFinnish = Object.assign({}, finnish, { leftmin: 1, rightmin: 1 });
 
 const hypher = new Hypher(modifiedFinnish);
+
+/**
+ * Hyphenated string with accented syllables at the end
+ */
+interface HyphenationWithAccents {
+  syllables: string[];
+  /** Indices of accented syllables */
+  accentedIndices: number[];
+  /** whether the sentence was too short to find enough accents */
+  wasTooShort: boolean;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -55,5 +67,20 @@ export class HyphenationService {
         .match(/[^\s]$/) && index < array.length - 1 ? item + '-' : item.replace(/\s$/, ''))
       .map(item => item.replace('=-', '='));
 
+  }
+
+  /**
+   * Hyphenate a string and find last accented syllables
+   * @param numberOfAccents How many accented syllables to show
+   */
+
+  hyphenateWithAccents(text: string, numberOfAccents = 2 ): HyphenationWithAccents {
+    const syllables = this.hyphenate(text);
+    const accentedIndices = getLastAccentedSyllables(syllables, numberOfAccents);
+    return {
+      syllables,
+      accentedIndices,
+      wasTooShort: accentedIndices.length < numberOfAccents
+    };
   }
 }

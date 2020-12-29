@@ -61,3 +61,35 @@ export const hyphenationExpectations: testCase[] = [
     numberOfSyllables: 11
   }
 ];
+
+type testCase_2 = {
+  originalText: string;
+  hyphenatedTextAsAString: string,
+  requestedAccents: number;
+  accentedIndices: number[];
+  wasTooShort: boolean;
+};
+
+export const hyphenationWithAccentsExpections: testCase_2[] = [
+  {
+    originalText: 'Herra on minun paimeneni',
+    hyphenatedTextAsAString: 'Her-ra on mi-nun pai-me-ne-ni',
+    requestedAccents: 2,
+    accentedIndices: [ 5, 7 ],
+    wasTooShort: false
+  },
+  {
+    originalText: 'Herra on minun paimeneni',
+    hyphenatedTextAsAString: 'Her-ra on mi-nun pai-me-ne-ni',
+    requestedAccents: 1,
+    accentedIndices: [ 7 ],
+    wasTooShort: false
+  },
+  {
+    originalText: 'Lyhyt',
+    hyphenatedTextAsAString: 'Ly-hyt',
+    requestedAccents: 2,
+    accentedIndices: [ 0 ],
+    wasTooShort: true
+  }
+];

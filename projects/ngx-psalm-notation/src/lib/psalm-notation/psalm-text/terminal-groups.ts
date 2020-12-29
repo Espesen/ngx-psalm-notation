@@ -15,50 +15,53 @@ type returnType = {
   notEnoughSyllables: boolean;
 };
 
+/**
+ * Return indices of last accented syllables of an array of syllables
+ * @param syllables array of syllables, e.g. ['Her-', 'ra', 'on', 'mi-', 'nun', 'pai-', 'me-', 'ne-', 'ni'];
+ * @param howMany number of syllables to return
+ */
+export const getLastAccentedSyllables: (x: string[], y: number) => number[] = (syllables, howMany) => {
+  const wordBeginnings = [0].concat(syllables
+    .map((syllable, index, array) => syllable.match(/[^\-]$/) && index < array.length - 2 ?
+      index + 1 : -1)
+    .filter(item => item > -1));
+
+  return wordBeginnings
+    .map((wordBeginningIndex, arrayIndex, array) => {
+
+      const wordLength = arrayIndex < array.length - 1 ?
+        array[arrayIndex + 1] - wordBeginningIndex :
+        syllables.length - wordBeginningIndex;
+
+      return wordLength < 3 ?
+        [ wordBeginningIndex ] :
+        Array.from(Array(Math.floor(wordLength / 2)).keys())
+          .map(delta => wordBeginningIndex + delta * 2);
+    })
+    .reduce((acc, curr) => acc.concat(...curr), [])
+    .filter((syllableIndex, arrayIndex, array) => arrayIndex < array.length - 1 ?
+      array[arrayIndex + 1] - syllableIndex > 1 :
+      true)
+    .reduce((acc, curr, index, arr) => {
+      const gap = index < arr.length - 1 ? arr[index + 1] - curr : syllables.length - curr;
+      return gap < 4 ? acc.concat(curr) : acc.concat(curr, curr + 2);
+    }, [])
+    .slice(-1 * howMany);
+};
+
 export const getTerminalGroups = (options: getTerminalGroupsOptions): returnType => {
 
   const { syllables, psalmody } = options;
   let notEnoughSyllables = false;
 
-  /** return indexes of accented syllables */
-  const getLastAccentedSyllables = (howMany: number): number[] => {
-    const wordBeginnings = [0].concat(syllables
-      .map((syllable, index, array) => syllable.match(/[^\-]$/) && index < array.length - 2 ?
-        index + 1 : -1)
-      .filter(item => item > -1));
+  const accentedSyllableIndices = getLastAccentedSyllables(syllables, psalmody.terminalGroups.length);
 
-    return wordBeginnings
-      .map((wordBeginningIndex, arrayIndex, array) => {
-
-        const wordLength = arrayIndex < array.length - 1 ?
-          array[arrayIndex + 1] - wordBeginningIndex :
-          syllables.length - wordBeginningIndex;
-
-        return wordLength < 3 ?
-          [ wordBeginningIndex ] :
-          Array.from(Array(Math.floor(wordLength / 2)).keys())
-            .map(delta => wordBeginningIndex + delta * 2);
-      })
-      .reduce((acc, curr) => acc.concat(...curr), [])
-      .filter((syllableIndex, arrayIndex, array) => arrayIndex < array.length - 1 ?
-        array[arrayIndex + 1] - syllableIndex > 1 :
-        true)
-      .reduce((acc, curr, index, arr) => {
-        const gap = index < arr.length - 1 ? arr[index + 1] - curr : syllables.length - curr;
-        return gap < 4 ? acc.concat(curr) : acc.concat(curr, curr + 2);
-      }, [])
-      .slice(-1 * howMany);
-
-  };
-
-  const accentedSyllableIndexes = getLastAccentedSyllables(psalmody.terminalGroups.length);
-
-  if (accentedSyllableIndexes.length < psalmody.terminalGroups.length) {
+  if (accentedSyllableIndices.length < psalmody.terminalGroups.length) {
     notEnoughSyllables = true;
     return { psalmNotes: [], notEnoughSyllables };
   }
 
-  const syllableGroupLengths = accentedSyllableIndexes
+  const syllableGroupLengths = accentedSyllableIndices
     .map((syllableIndex, index, array) => index < array.length - 1 ?
       array[index + 1] - syllableIndex :
       syllables.length - syllableIndex);
@@ -77,7 +80,7 @@ export const getTerminalGroups = (options: getTerminalGroupsOptions): returnType
 
         return notes.map((note, indexInGroup) => ({
           note,
-          text: syllables.splice(accentedSyllableIndexes[0], 1)[0]
+          text: syllables.splice(accentedSyllableIndices[0], 1)[0]
         }));
       })
       .reduce((acc, curr) => acc.concat(curr), []),
