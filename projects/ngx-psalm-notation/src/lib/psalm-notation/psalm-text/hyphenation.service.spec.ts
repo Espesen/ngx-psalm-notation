@@ -1,4 +1,3 @@
-import { getLastAccentedSyllables } from './terminal-groups';
 import { hyphenationExpectations, hyphenationWithAccentsExpections } from './test/hyphenation-expectations';
 import { TestBed } from '@angular/core/testing';
 

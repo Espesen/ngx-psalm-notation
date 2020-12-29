@@ -91,5 +91,12 @@ export const hyphenationWithAccentsExpections: testCase_2[] = [
     requestedAccents: 2,
     accentedIndices: [ 0 ],
     wasTooShort: true
+  },
+  {
+    originalText: 'alussa, nyt on ja aina',
+    hyphenatedTextAsAString: 'a-lus-sa, nyt on ja ai-na',
+    requestedAccents: 2,
+    accentedIndices: [ 3, 6 ],
+    wasTooShort: false
   }
 ];

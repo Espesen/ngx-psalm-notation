@@ -18,7 +18,7 @@ export class PsalmTextService {
   /**
    * Combine melody and lyrics to a psalm verse.
    *
-   * @param options.lyrics either a string that will be hyphenated ar array of hyphens.
+   * @param options.lyrics either a string that will be hyphenated ar array of syllables.
    */
   renderPsalm(options: { melody: string, lyrics: string | string[] }): RenderedPsalm {
     const { lyrics, melody } = options;

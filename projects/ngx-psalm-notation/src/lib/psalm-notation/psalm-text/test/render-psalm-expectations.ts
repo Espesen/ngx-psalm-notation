@@ -46,6 +46,14 @@ export const successfulRenderPsalmExpectations: renderedExpectation[] = [
       firstLine: 'f1 Sil- g1 loin a1 koko b1 maa a1 on g1 hä- a1 nen',
       secondLine: 'a1 ja_ylis- g1 tää a1 ko- f1 ko f1 maa'
     }
+  },
+  {
+    lyrics: 'Niinkuin oli alussa, nyt on ja aina = iankaikkisesta iankaikkiseen. Aamen.',
+    melody: 'f g a_ *b a *g a = a_ g *a f',
+    expectedResult: {
+      firstLine: 'f1 Niin- g1 kuin a1 oli_alussa, b1 nyt a1 on a1 ja g1 ai- a1 na',
+      secondLine: 'a1 iankaikkisesta_iankaikki- g1 seen. a1 Aa- f1 men.'
+    }
   }
 
 ];

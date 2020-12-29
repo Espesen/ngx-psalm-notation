@@ -26,6 +26,12 @@ export const getLastAccentedSyllables: (x: string[], y: number) => number[] = (s
       index + 1 : -1)
     .filter(item => item > -1));
 
+  const reduceFn: (a: number[], b: number, c: number, d: number[]) => number[] = (acc, curr, index, arr) => {
+    const nextIndex = index < arr.length - 1 ? arr[index + 1] : syllables.length;
+    const gap = nextIndex - curr;
+    return gap < 4 ? acc.concat(curr) : acc.concat([curr, curr + Math.floor(gap / 2), nextIndex].reduce(reduceFn, []).slice(0, -1));
+  };
+
   return wordBeginnings
     .map((wordBeginningIndex, arrayIndex, array) => {
 
@@ -42,10 +48,7 @@ export const getLastAccentedSyllables: (x: string[], y: number) => number[] = (s
     .filter((syllableIndex, arrayIndex, array) => arrayIndex < array.length - 1 ?
       array[arrayIndex + 1] - syllableIndex > 1 :
       true)
-    .reduce((acc, curr, index, arr) => {
-      const gap = index < arr.length - 1 ? arr[index + 1] - curr : syllables.length - curr;
-      return gap < 4 ? acc.concat(curr) : acc.concat(curr, curr + 2);
-    }, [])
+    .reduce(reduceFn, [])
     .slice(-1 * howMany);
 };
 
