@@ -56,21 +56,28 @@ export const getTerminalGroups = (options: getTerminalGroupsOptions): returnType
 
   const { syllables, psalmody } = options;
   let notEnoughSyllables = false;
+  let terminalGroupSliceValue: number;
 
   const accentedSyllableIndices = getLastAccentedSyllables(syllables, psalmody.terminalGroups.length);
-
-  if (accentedSyllableIndices.length < psalmody.terminalGroups.length) {
+  if (syllables.length < 3) {
     notEnoughSyllables = true;
     return { psalmNotes: [], notEnoughSyllables };
   }
+  // if there are very few syllables, use only the last terminal group
+  if (accentedSyllableIndices[0] < 2) {
+    terminalGroupSliceValue = -1;
+  } else {
+    terminalGroupSliceValue = -1 * psalmody.terminalGroups.length;
+  }
 
-  const syllableGroupLengths = accentedSyllableIndices
+  const syllableGroupLengths = accentedSyllableIndices.slice(terminalGroupSliceValue)
     .map((syllableIndex, index, array) => index < array.length - 1 ?
       array[index + 1] - syllableIndex :
       syllables.length - syllableIndex);
 
   return {
     psalmNotes: psalmody.terminalGroups
+      .slice(terminalGroupSliceValue)
       .map((notes, index) => {
 
         if (notes.length > syllableGroupLengths[index]) {
@@ -83,7 +90,7 @@ export const getTerminalGroups = (options: getTerminalGroupsOptions): returnType
 
         return notes.map((note, indexInGroup) => ({
           note,
-          text: syllables.splice(accentedSyllableIndices[0], 1)[0]
+          text: syllables.splice(accentedSyllableIndices.slice(terminalGroupSliceValue)[0], 1)[0]
         }));
       })
       .reduce((acc, curr) => acc.concat(curr), []),

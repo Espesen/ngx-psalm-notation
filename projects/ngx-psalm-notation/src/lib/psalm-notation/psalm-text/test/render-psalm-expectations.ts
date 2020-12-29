@@ -40,6 +40,14 @@ export const successfulRenderPsalmExpectations: renderedExpectation[] = [
     }
   },
   {
+    lyrics: 'Hän vie minut vihreille niityille = siellä saan levätä',
+    melody: 'f a c2_ *d2 (c2) c2 = c2_ *d2 (h) h *c2 (a) a',
+    expectedResult: {
+      firstLine: 'f1 Hän a1 vie c2 minut_vihreille d2 nii- c2 tyil- c2 le',
+      secondLine: 'c2 siellä_saan c2 le- a1 vä- a1 tä'
+    }
+  },
+  {
     lyrics: 'Silloin koko maa on hänen = ja ylistää koko maa',
     melody: 'f g a_ *b a *g a = a_ g *a f',
     expectedResult: {
@@ -55,5 +63,4 @@ export const successfulRenderPsalmExpectations: renderedExpectation[] = [
       secondLine: 'a1 iankaikkisesta_iankaikki- g1 seen. a1 Aa- f1 men.'
     }
   }
-
 ];

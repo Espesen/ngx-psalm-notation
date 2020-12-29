@@ -52,7 +52,7 @@ describe('PsalmTextService', () => {
     });
 
     it('should return correctly rendered psalm lines', () => {
-      successfulRenderPsalmExpectations.slice(-1).forEach(testCase => {
+      successfulRenderPsalmExpectations.forEach(testCase => {
 
         const convertToString = (psalmLine: RenderedPsalm['firstLine']): string => psalmLine ?
           psalmLine.elements
