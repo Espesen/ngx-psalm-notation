@@ -17,7 +17,7 @@ const getPlainNotePitch = (pitch: string): string => pitch
   .replace(/[^\d]$/, '$&1');
 
 
-type parseError = {
+type ParseError = {
   erroneousSymbol: string;
   atIndex: number;
 };
@@ -33,8 +33,8 @@ export class MelodyService {
    * Parses a raw psalm melody string and converts it to staff objects.
    * Does not validate the melody in any way!
    */
-  parseMelody(melodyString: string): { errors: parseError[], result: StaffObject[] } {
-    const errors: parseError[] = [];
+  parseMelody(melodyString: string): { errors: ParseError[], result: StaffObject[] } {
+    const errors: ParseError[] = [];
     const result: StaffObject[] = [];
     const stringParticles = melodyString.split(' ');
     stringParticles
