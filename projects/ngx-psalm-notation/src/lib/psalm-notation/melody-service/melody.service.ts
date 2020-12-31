@@ -84,11 +84,9 @@ export class MelodyService {
     } else {
 
       // detect the tenors
-      let currentlyTraversing = 0;
       let foundTenors = 0;
       for (let i = 0; i < stringFragments.length; i++) {
         if (stringFragments[i] === '=') {
-          currentlyTraversing += 1;
           if (foundTenors === 0) {
             isValid = false;
             errors.push({
@@ -109,6 +107,13 @@ export class MelodyService {
             }
           }
         }
+      }
+      if (!foundTenors) {
+        isValid = false;
+        errors.push({
+          atIndex: stringFragments.length - 1,
+          message: 'Kummassakin säkeessä tulee olla täsmälleen yksi resitointisävel'
+        });
       }
     }
 

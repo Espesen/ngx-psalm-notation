@@ -22,6 +22,12 @@ export const erroneousMelodies: { melodyString: string, expecteErrors: expectedE
     ]
   },
   {
+    melodyString: 'f g a_ *b a = g *f e',
+    expecteErrors: [
+      { atIndex: 8, message: 'Kummassakin säkeessä tulee olla täsmälleen yksi resitointisävel'}
+    ]
+  },
+  {
     melodyString: 'f g a *g a = a_ g *a f',
     expecteErrors: [
       { atIndex: 5, message: 'Kummassakin säkeessä tulee olla täsmälleen yksi resitointisävel'}
