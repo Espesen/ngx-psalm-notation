@@ -32,12 +32,13 @@ export class HyphenationService {
     const exceptions: exception[] = [
       { syllable: 'älä', replace: ['ä', 'lä']},
       { syllable: 'näön', replace: ['nä', 'ön']},
-      { syllable: 'nia', replace: ['ni', 'a']}
+      { syllable: 'nia', replace: ['ni', 'a']},
+      { syllable: 'pusi', replace: ['pu', 'si']}
     ];
 
     const getFindFn = (syllable: string) => (exc: exception) => !!syllable.match(new RegExp(exc.syllable, 'i'));
     const replaceFn = (exc: exception, originalSyllable: string): string[] => {
-      const isUpperCase = !!originalSyllable.match(/[A-ZÅÄÖ]/);
+      const isUpperCase = !!originalSyllable.match(/^[A-ZÅÄÖ]/);
       const addSpaceToLast = (syll: string, i: number, arr: string[]) => i === arr.length - 1 ? syll + ' ' : syll;
       return isUpperCase ?
         exc.replace.map((syll, i, arr) => i === 0 ? syll.charAt(0).toUpperCase() + syll.slice(1) : syll)
