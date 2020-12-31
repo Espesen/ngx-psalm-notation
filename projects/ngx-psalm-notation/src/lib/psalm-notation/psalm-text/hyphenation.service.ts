@@ -28,30 +28,68 @@ export class HyphenationService {
 
   hyphenate(text: string): string[] {
 
-    type exception = { syllable: string, replace: string[] };
-    const exceptions: exception[] = [
+    type Context = { previousSyllable: string, nextSyllable: string };
+    type Exception = { syllable: string, replace: string[], context?: Context };
+    const exceptions: Exception[] = [
       { syllable: 'älä', replace: ['ä', 'lä']},
       { syllable: 'näön', replace: ['nä', 'ön']},
       { syllable: 'nia', replace: ['ni', 'a']},
-      { syllable: 'pusi', replace: ['pu', 'si']}
+      { syllable: 'pusi', replace: ['pu', 'si']},
+      { syllable: 'sian', replace: ['si', 'an'], context: { previousSyllable: 'hoo', nextSyllable: 'na'}},
+      { syllable: 'sian', replace: ['si', 'an'], context: { previousSyllable: 'mor', nextSyllable: '*'}}
     ];
 
-    const getFindFn = (syllable: string) => (exc: exception) => !!syllable.match(new RegExp(exc.syllable, 'i'));
-    const replaceFn = (exc: exception, originalSyllable: string): string[] => {
+    /** Helper function for case insensitive match with punctuation */
+    const customMatch: (a: string, b: string) => boolean = (a, b) => !!a.match(
+      new RegExp('^' + b + '[.,:;?!]?\\s?$', 'i')
+    );
+
+    const getFindFn = (syllable: string) => (exc: Exception) => customMatch(syllable, exc.syllable);
+
+    const replaceFn = (originalSyllable: string, context: Context): string[] => {
+      const matchingExceptions = exceptions.filter(e => customMatch(originalSyllable, e.syllable));
       const isUpperCase = !!originalSyllable.match(/^[A-ZÅÄÖ]/);
-      const punctuationMatch = originalSyllable.match(/([.,?!;:])$/);
+      const punctuationMatch = originalSyllable.match(/([.,?!;:]?\s?)$/);
       const originalPunctuation = punctuationMatch ? punctuationMatch[1] : '';
-      const addSpaceAndPunctuationToLast = (syll: string, i: number, arr: string[]) => i === arr.length - 1 ? syll + originalPunctuation + ' ' : syll;
+      const addPunctuationToLast = (syll: string, i: number, arr: string[]) => i === arr.length - 1 ? syll + originalPunctuation : syll;
+      const matchContext: (a: Context, b: Context) => boolean = (a, exceptionContext) => {
+        const previousMatch = exceptionContext.previousSyllable === '*' ||
+          customMatch(a.previousSyllable, exceptionContext.previousSyllable);
+        const nextMatch = exceptionContext.nextSyllable === '*' ||
+          customMatch(a.nextSyllable, exceptionContext.nextSyllable);
+        return previousMatch && nextMatch;
+      };
+
+      let exc: Exception;
+      let replacement: string[];
+
+      // Loop through possible exceptions
+      // tslint:disable-next-line:prefer-for-of
+      for (let i = 0; i < matchingExceptions.length; i++) {
+        exc = matchingExceptions[i];
+        replacement = !exc.context ?
+          exc.replace.map(addPunctuationToLast) :
+          matchContext(context, exc.context) ?
+            exc.replace.map(addPunctuationToLast) :
+            [ originalSyllable ];
+        // if match was found, break out of loop
+        if (replacement.length > 1) {
+          i = matchingExceptions.length;
+        }
+      }
+
       return isUpperCase ?
-        exc.replace.map((syll, i, arr) => i === 0 ? syll.charAt(0).toUpperCase() + syll.slice(1) : syll)
-          .map(addSpaceAndPunctuationToLast) :
-        exc.replace
-          .map(addSpaceAndPunctuationToLast);
+        replacement.map((syll, i) => i === 0 ? syll.charAt(0).toUpperCase() + syll.slice(1) : syll) :
+        replacement;
     };
-    const replaceExceptions = (arr: string[], syllable: string): string[] => exceptions
+
+    const replaceExceptions = (acc: string[], syllable: string, index: number, syllablesArray: string[]): string[] => exceptions
       .find(getFindFn(syllable)) ?
-        arr.concat(...replaceFn(exceptions.find(getFindFn(syllable)), syllable)) :
-        arr.concat(syllable);
+        acc.concat(...replaceFn(syllable, {
+          previousSyllable: acc.slice(-1)[0] || '',
+          nextSyllable: syllablesArray[index + 1] || ''
+        })) :
+        acc.concat(syllable);
 
     const splitOnSpaces: (s: string) => string[] = str => str
       .split(/(\s)/)

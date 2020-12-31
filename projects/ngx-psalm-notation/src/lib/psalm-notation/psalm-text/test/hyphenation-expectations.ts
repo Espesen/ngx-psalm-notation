@@ -41,6 +41,16 @@ export const hyphenationExpectations: testCase[] = [
     numberOfSyllables: 3
   },
   {
+    originalText: 'Hoosianna!',
+    hyphenatedTextAsAString: 'Hoo-si-an-na!',
+    numberOfSyllables: 4
+  },
+  {
+    originalText: 'Morsian',
+    hyphenatedTextAsAString: 'Mor-si-an',
+    numberOfSyllables: 3
+  },
+  {
     originalText: 'näön',
     hyphenatedTextAsAString: 'nä-ön',
     numberOfSyllables: 2
