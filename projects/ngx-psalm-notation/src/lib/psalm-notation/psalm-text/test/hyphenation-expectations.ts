@@ -36,6 +36,11 @@ export const hyphenationExpectations: testCase[] = [
     numberOfSyllables: 4
   },
   {
+    originalText: 'Kunnia?',
+    hyphenatedTextAsAString: 'Kun-ni-a?',
+    numberOfSyllables: 3
+  },
+  {
     originalText: 'näön',
     hyphenatedTextAsAString: 'nä-ön',
     numberOfSyllables: 2
@@ -97,6 +102,13 @@ export const hyphenationWithAccentsExpections: testCase_2[] = [
     hyphenatedTextAsAString: 'a-lus-sa, nyt on ja ai-na',
     requestedAccents: 2,
     accentedIndices: [ 3, 6 ],
+    wasTooShort: false
+  },
+  {
+    originalText: 'anna meille apusi!',
+    hyphenatedTextAsAString: 'an-na meil-le a-pu-si!',
+    requestedAccents: 1,
+    accentedIndices: [ 4 ],
     wasTooShort: false
   }
 ];

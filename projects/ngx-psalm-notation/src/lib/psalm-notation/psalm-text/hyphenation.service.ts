@@ -39,12 +39,14 @@ export class HyphenationService {
     const getFindFn = (syllable: string) => (exc: exception) => !!syllable.match(new RegExp(exc.syllable, 'i'));
     const replaceFn = (exc: exception, originalSyllable: string): string[] => {
       const isUpperCase = !!originalSyllable.match(/^[A-ZÅÄÖ]/);
-      const addSpaceToLast = (syll: string, i: number, arr: string[]) => i === arr.length - 1 ? syll + ' ' : syll;
+      const punctuationMatch = originalSyllable.match(/([.,?!;:])$/);
+      const originalPunctuation = punctuationMatch ? punctuationMatch[1] : '';
+      const addSpaceAndPunctuationToLast = (syll: string, i: number, arr: string[]) => i === arr.length - 1 ? syll + originalPunctuation + ' ' : syll;
       return isUpperCase ?
         exc.replace.map((syll, i, arr) => i === 0 ? syll.charAt(0).toUpperCase() + syll.slice(1) : syll)
-          .map(addSpaceToLast) :
+          .map(addSpaceAndPunctuationToLast) :
         exc.replace
-          .map(addSpaceToLast);
+          .map(addSpaceAndPunctuationToLast);
     };
     const replaceExceptions = (arr: string[], syllable: string): string[] => exceptions
       .find(getFindFn(syllable)) ?
